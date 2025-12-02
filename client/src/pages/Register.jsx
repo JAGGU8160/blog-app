@@ -1,3 +1,4 @@
+// client/src/pages/Register.jsx
 function Register() {
   return (
     <div>

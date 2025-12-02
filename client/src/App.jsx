@@ -1,44 +1,65 @@
-import { useEffect, useState } from "react";
+// client/src/App.jsx
+import { Routes, Route, Link } from "react-router-dom";
 import Home from "./pages/Home.jsx";
+import Login from "./pages/Login.jsx";
+import Register from "./pages/Register.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
 
 function App() {
-  const [health, setHealth] = useState(null);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    fetch("http://localhost:5000/api/health")
-      .then((res) => res.json())
-      .then((data) => setHealth(data))
-      .catch((err) => {
-        console.error(err);
-        setError("Cannot connect to backend");
-      });
-  }, []);
-
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", padding: "2rem" }}>
-      <h1>Blog App – MERN + PostgreSQL</h1>
+    <div
+      style={{
+        fontFamily: "system-ui, sans-serif",
+        minHeight: "100vh",
+        background: "#f5f5f5",
+      }}
+    >
+      {/* Simple navbar */}
+      <header
+        style={{
+          background: "#111827",
+          color: "white",
+          padding: "1rem 2rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ fontWeight: 700 }}>My Blog</div>
+        <nav style={{ display: "flex", gap: "1rem" }}>
+          <Link to="/" style={{ color: "white", textDecoration: "none" }}>
+            Home
+          </Link>
+          <Link
+            to="/dashboard"
+            style={{ color: "white", textDecoration: "none" }}
+          >
+            Dashboard
+          </Link>
+          <Link
+            to="/login"
+            style={{ color: "white", textDecoration: "none" }}
+          >
+            Login
+          </Link>
+          <Link
+            to="/register"
+            style={{ color: "white", textDecoration: "none" }}
+          >
+            Register
+          </Link>
+        </nav>
+      </header>
 
-      <section style={{ marginTop: "1.5rem" }}>
-        <h2>Backend status</h2>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {health && <pre>{JSON.stringify(health, null, 2)}</pre>}
-        {!health && !error && <p>Checking server...</p>}
-      </section>
-
-      <section style={{ marginTop: "2rem" }}>
-        <Home />
-      </section>
-
-      <section style={{ marginTop: "2rem" }}>
-        <h2>Coming soon</h2>
-        <ul>
-          <li>Home page – list of blog posts</li>
-          <li>Post detail page</li>
-          <li>Login / Register</li>
-          <li>Dashboard for creating posts</li>
-        </ul>
-      </section>
+      {/* Page content */}
+      <main style={{ padding: "2rem", maxWidth: "900px", margin: "0 auto" }}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </main>
     </div>
   );
 }

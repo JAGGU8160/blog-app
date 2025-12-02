@@ -1,16 +1,17 @@
 // server/src/db.js
 import pg from "pg";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const { Pool } = pg;
 
+// 🔴 TEMP: hard-coded connection for debugging
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  user: "postgres",      // your DB user
+  host: "localhost",
+  database: "blogdb",    // the DB you created in pgAdmin
+  password: "root",      // the password you set for 'postgres'
+  port: 5432,
 });
 
-// optional: quick test when server starts
 export const testDbConnection = async () => {
   try {
     const res = await pool.query("SELECT NOW()");
