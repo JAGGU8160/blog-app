@@ -1,0 +1,14 @@
+# Node modules (global)
+node_modules/
+
+# Ignore env files
+server/.env
+
+# Build folders
+client/dist/
+client/.vite/
+
+# OS / Editor
+.DS_Store
+.vscode/
+*.log
