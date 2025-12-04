@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { pool } from "../db.js";
+import nodemailer from "nodemailer";
+
 
 // Load env variables from .env
 dotenv.config();
@@ -12,6 +14,111 @@ const JWT_SECRET = process.env.JWT_SECRET || "dev_fallback_secret_key";
 
 // Optional: to debug once, you can uncomment this:
 // console.log("JWT_SECRET being used:", JWT_SECRET);
+
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT) || 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_FROM,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+export const requestPasswordOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    const userResult = await pool.query(
+      "SELECT id, name, email FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (userResult.rows.length === 0) {
+      // Don't reveal that user doesn't exist
+      return res.json({
+        message: "If this email exists, an OTP has been sent.",
+      });
+    }
+
+    const user = userResult.rows[0];
+
+    const otp = generateOtp();
+    const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    await pool.query(
+      "UPDATE users SET reset_otp = $1, reset_otp_expires = $2 WHERE id = $3",
+      [otp, expires, user.id]
+    );
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
+      to: user.email,
+      subject: "Your password reset OTP",
+      text: `Hello ${user.name || ""},\n\nYour OTP is ${otp}. It is valid for 10 minutes.\n\nIf you didn't request this, you can ignore this email.`,
+    });
+
+    res.json({ message: "OTP sent to your email if it exists in our system." });
+  } catch (err) {
+    console.error("requestPasswordOtp error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+export const resetPasswordWithOtp = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
+
+    const userResult = await pool.query(
+      "SELECT id, reset_otp, reset_otp_expires FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(400).json({ message: "Invalid OTP or email" });
+    }
+
+    const user = userResult.rows[0];
+
+    if (!user.reset_otp || !user.reset_otp_expires) {
+      return res.status(400).json({ message: "OTP not requested" });
+    }
+
+    const now = new Date();
+    if (
+      user.reset_otp !== otp ||
+      new Date(user.reset_otp_expires).getTime() < now.getTime()
+    ) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await pool.query(
+      `UPDATE users 
+       SET password = $1, reset_otp = NULL, reset_otp_expires = NULL 
+       WHERE id = $2`,
+      [hashedPassword, user.id]
+    );
+
+    res.json({ message: "Password reset successfully" });
+  } catch (err) {
+    console.error("resetPasswordWithOtp error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+const generateOtp = () =>
+  Math.floor(100000 + Math.random() * 900000).toString();
+
 
 const generateToken = (user) => {
   return jwt.sign(

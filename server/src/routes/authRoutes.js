@@ -1,7 +1,9 @@
 // server/src/routes/authRoutes.js
 import express from "express";
-import { register, login, getMe } from "../controllers/authController.js";
+import { register, login, getMe ,requestPasswordOtp,resetPasswordWithOtp} from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
+
+
 
 const router = express.Router();
 
@@ -13,5 +15,7 @@ router.post("/login", login);
 
 // GET /api/auth/me (requires token)
 router.get("/me", protect, getMe);
+router.post("/password-otp", requestPasswordOtp);
+router.post("/reset-password", resetPasswordWithOtp);
 
 export default router;
