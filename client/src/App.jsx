@@ -1,66 +1,109 @@
 // client/src/App.jsx
-import { Routes, Route, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Routes, Route, Link, useLocation } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import PostDetail from "./pages/PostDetail.jsx";
+import { AuthContext } from "./authContext";
 
 function App() {
-  return (
-    <div
-      style={{
-        fontFamily: "system-ui, sans-serif",
-        minHeight: "100vh",
-        background: "#f5f5f5",
-      }}
-    >
-      {/* Simple navbar */}
-      <header
-        style={{
-          background: "#111827",
-          color: "white",
-          padding: "1rem 2rem",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div style={{ fontWeight: 700 }}>My Blog</div>
-        <nav style={{ display: "flex", gap: "1rem" }}>
-          <Link to="/" style={{ color: "white", textDecoration: "none" }}>
-            Home
-          </Link>
-          <Link
-            to="/dashboard"
-            style={{ color: "white", textDecoration: "none" }}
-          >
-            Dashboard
-          </Link>
-          <Link
-            to="/login"
-            style={{ color: "white", textDecoration: "none" }}
-          >
-            Login
-          </Link>
-          <Link
-            to="/register"
-            style={{ color: "white", textDecoration: "none" }}
-          >
-            Register
-          </Link>
-        </nav>
-      </header>
+  const location = useLocation();
 
-      {/* Page content */}
-      <main style={{ padding: "2rem", maxWidth: "900px", margin: "0 auto" }}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Routes>
-      </main>
-    </div>
+  const [authUser, setAuthUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem("authUser");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const loginUser = (user, token) => {
+    localStorage.setItem("authToken", token);
+    localStorage.setItem("authUser", JSON.stringify(user));
+    setAuthUser(user);
+  };
+
+  const logoutUser = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("authUser");
+    setAuthUser(null);
+  };
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("authUser");
+      const user = raw ? JSON.parse(raw) : null;
+      setAuthUser(user);
+    } catch {
+      setAuthUser(null);
+    }
+  }, [location.pathname]);
+
+  return (
+    <AuthContext.Provider value={{ authUser, loginUser, logoutUser }}>
+      <div className="min-h-screen bg-slate-100 text-slate-900">
+        {/* Top navbar */}
+        <header className="bg-slate-900 text-white">
+          <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
+            <Link to="/" className="text-xl font-semibold tracking-tight">
+              My Blog
+            </Link>
+
+            {/* Right side nav - depends on login state */}
+            {authUser ? (
+              <div className="flex items-center gap-4 text-sm">
+                <span className="text-slate-200">
+                  Hello,{" "}
+                  <span className="font-semibold">{authUser.name}</span>
+                </span>
+
+                <Link
+                  to="/dashboard"
+                  className="hover:text-sky-300 transition"
+                >
+                  Dashboard
+                </Link>
+
+                <button
+                  onClick={logoutUser}
+                  className="rounded-lg border border-slate-300 px-3 py-1 text-xs font-medium 
+                             text-slate-900 bg-white hover:bg-slate-100"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <nav className="flex items-center gap-4 text-sm">
+                {/* Show Register first, then Login */}
+                <Link
+                  to="/register"
+                  className="hover:text-sky-300 transition"
+                >
+                  Register
+                </Link>
+                <Link to="/login" className="hover:text-sky-300 transition">
+                  Login
+                </Link>
+              </nav>
+            )}
+          </div>
+        </header>
+
+        {/* 🔻 THIS PART RENDERS HOME & OTHER PAGES */}
+        <main className="max-w-6xl mx-auto px-4 py-8">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/posts/:slug" element={<PostDetail />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Routes>
+        </main>
+      </div>
+    </AuthContext.Provider>
   );
 }
 
