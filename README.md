@@ -3,7 +3,7 @@
 A full-stack blogging platform where users can:
 
 - Register, log in and manage their own posts
-- Create, edit and delete blog posts with images
+- Create, edit and delete blog posts with image
 - Browse posts by category on the home page
 - View individual post detail pages
 - See only their own posts on **Jaggu blogs** (My blogs)
