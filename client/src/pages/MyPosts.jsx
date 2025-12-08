@@ -27,14 +27,28 @@ function MyPosts() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={[{ label: "My blogs" }]} />
-      <h2 className="text-2xl font-semibold">My blogs</h2>
+      <Breadcrumb items={[{ label: "Jaggu blogs" }]} />
+
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h2 className="text-2xl font-semibold">Jaggu blogs</h2>
+          <p className="text-xs text-slate-500">
+            Posts written by {authUser.name}
+          </p>
+        </div>
+        {posts.length > 0 && (
+          <span className="text-xs text-slate-500">
+            {posts.length} post{posts.length > 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
 
       {msg && <p className="text-sm text-red-500">{msg}</p>}
 
       {posts.length === 0 ? (
         <p className="text-sm text-slate-600">
-          You haven&apos;t written any blog posts yet.
+          You haven&apos;t written any blog posts yet. Create one from your
+          dashboard.
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

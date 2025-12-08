@@ -39,7 +39,6 @@ function PasswordReset() {
         method: "POST",
         body: JSON.stringify({ email, otp, newPassword }),
       });
-
       setMsg(res.message || "Password reset successfully. You can now login.");
     } catch (err) {
       setMsg(err.message);
@@ -50,7 +49,9 @@ function PasswordReset() {
     <div className="max-w-md mx-auto">
       <Breadcrumb
         items={[
-          { label: isLoggedInChange ? "Change password" : "Forgot password" },
+          {
+            label: isLoggedInChange ? "Change password" : "Forgot password",
+          },
         ]}
       />
 
@@ -58,8 +59,8 @@ function PasswordReset() {
         {isLoggedInChange ? "Change password" : "Forgot password"}
       </h2>
       <p className="text-sm text-slate-600 mb-4">
-        We&apos;ll send a one-time OTP to your email. The code will be valid
-        for a few minutes.
+        We&apos;ll send a one-time OTP to your email. The code will be valid for
+        a few minutes.
       </p>
 
       {msg && (
@@ -88,7 +89,8 @@ function PasswordReset() {
 
           {isLoggedInChange && (
             <p className="text-xs text-slate-500">
-              OTP will be sent to <span className="font-medium">{email}</span>
+              OTP will be sent to{" "}
+              <span className="font-medium">{email}</span>
             </p>
           )}
 
@@ -111,8 +113,8 @@ function PasswordReset() {
               type="text"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              required
               maxLength={6}
+              required
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm 
                          focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
             />
